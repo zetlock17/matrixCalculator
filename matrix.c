@@ -17,34 +17,52 @@ void printMatrix(struct Matrix* matrix) {
     }
 }
 
-struct Matrix* matrixAddition(struct Matrix* matrix1, struct Matrix* matrix2, struct Matrix* result) {
-    for (int i = 0; i < matrix1->height; i++) {
-        for (int j = 0; j < matrix1->width; j++) {
-            result->matrix[i][j] = matrix1->matrix[i][j] + matrix2->matrix[i][j];
-        }
-    }
-    return result;
-}
+struct Matrix* matrixAddition(struct Matrix* matrix1, struct Matrix* matrix2) {
+    if (matrix1->height == matrix2->height && matrix1->width == matrix2->width) {
+        struct Matrix* result = createMatrix(matrix1->width, matrix1->height);
 
-struct Matrix* matrixSubtraction(struct Matrix* matrix1, struct Matrix* matrix2, struct Matrix* result) {
-    for (int i = 0; i < matrix1->height; i++) {
-        for (int j = 0; j < matrix1->width; j++) {
-            result->matrix[i][j] = matrix1->matrix[i][j] - matrix2->matrix[i][j];
-        }
-    }
-    return result;
-}
-
-struct Matrix* multiplyMatrix(struct Matrix* matrix1, struct Matrix* matrix2, struct Matrix* result) {
-    for (int i = 0; i < matrix1->height; i++) {
-        for (int j = 0; j < matrix2->width; j++) {
-            result->matrix[i][j] = 0;
-            for (int k = 0; k < matrix1->width; k++) {
-                result->matrix[i][j] += matrix1->matrix[i][k] * matrix2->matrix[k][j];
+        for (int i = 0; i < matrix1->height; i++) {
+            for (int j = 0; j < matrix1->width; j++) {
+                result->matrix[i][j] = matrix1->matrix[i][j] + matrix2->matrix[i][j];
             }
         }
+        return result;
+    } else {
+        printf("Addition of matrices is impossible.\n");
+    }    
+}
+
+struct Matrix* matrixSubtraction(struct Matrix* matrix1, struct Matrix* matrix2) {
+    if (matrix1->height == matrix2->height && matrix1->width == matrix2->width) {
+        struct Matrix* result = createMatrix(matrix1->width, matrix1->height);
+
+        for (int i = 0; i < matrix1->height; i++) {
+            for (int j = 0; j < matrix1->width; j++) {
+                result->matrix[i][j] = matrix1->matrix[i][j] - matrix2->matrix[i][j];
+            }
+        }
+        return result;
+    } else {
+        printf("Subtraction of matrices is impossible.\n");
     }
-    return result;
+}
+
+struct Matrix* multiplyMatrix(struct Matrix* matrix1, struct Matrix* matrix2) {
+    if (matrix1->width == matrix2->height) {
+        struct Matrix* result = createMatrix(matrix1->width, matrix2->height);
+
+        for (int i = 0; i < matrix1->height; i++) {
+            for (int j = 0; j < matrix2->width; j++) {
+                result->matrix[i][j] = 0;
+                for (int k = 0; k < matrix1->width; k++) {
+                    result->matrix[i][j] += matrix1->matrix[i][k] * matrix2->matrix[k][j];
+                }
+            }
+        }
+        return result;
+    } else {
+        printf("Matrix multiplication is impossible.\n");
+    }
 }
 
 struct Matrix* manualFilling(struct Matrix* matrix) {
@@ -58,10 +76,7 @@ struct Matrix* manualFilling(struct Matrix* matrix) {
     return matrix;
 }
 
-struct Matrix* randomFilling(struct Matrix* matrix) {
-    int max_value;
-    printf("Select the maximum value for the matrix elements: ");
-    scanf("%d", &max_value);
+struct Matrix* randomFilling(struct Matrix* matrix, int max_value) {
     for (int i = 0; i < matrix->height; i++) {
         for (int j = 0; j < matrix->width; j++) {
             matrix->matrix[i][j] = rand() % max_value + 1;
@@ -89,17 +104,6 @@ struct Matrix* createMatrix(int height, int width) {
     return matrix;
 }
 
-struct Matrix* fillingMatrix(struct Matrix* matrix) {
-    int mode;
-    printf("1 - manual filling\n2 - random filling: ");
-    scanf("%d", &mode);
-    if (mode == 1) {
-        return manualFilling(matrix);
-    } else {
-        return randomFilling(matrix);
-    }
-}
-
 struct Matrix* copyMatrix(struct Matrix* sourse) {
     struct Matrix* copy = createMatrix(sourse->height, sourse->width);
 
@@ -125,46 +129,55 @@ struct Matrix* transposeMatrix(struct Matrix* matrix) {
 }
 
 int main() {
-    int height, width;
+    struct Matrix* multiplicationResult;
+    struct Matrix* additionResult;
+    struct Matrix* subtractionResult;
+    int height, width, mode, max_value;
+
     srand(time(NULL));
 
     printf("Creation of the first matrix\n");
     printf("Enter the size of the matrix (rows and columns):\n");
     scanf("%d %d", &height, &width);
     struct Matrix* matrix1 = createMatrix(height, width);
-    matrix1 = fillingMatrix(matrix1);
+    printf("1 - manual filling\n2 - random filling: ");
+    scanf("%d", &mode);
+    if (mode == 1) {
+        matrix1 = manualFilling(matrix1);
+    } else {
+        printf("Select the maximum value for the matrix elements: ");
+        scanf("%d", &max_value);
+        matrix1 = randomFilling(matrix1, max_value);
+    }
 
     printf("Creation of the second matrix:\n");
     printf("Enter the size of the matrix (rows and columns):\n");
     scanf("%d %d", &height, &width);
     struct Matrix* matrix2 = createMatrix(height, width);
-    matrix2 = fillingMatrix(matrix2);
-
-    if (matrix1->width == matrix2->height) {
-        struct Matrix* multiplicationResult = createMatrix(matrix1->height, matrix2->width);
-        multiplyMatrix(matrix1, matrix2, multiplicationResult);
-        printf("Result of multiplication:\n");
-        printMatrix(multiplicationResult);
-        deleteMatrix(multiplicationResult);
+    printf("1 - manual filling\n2 - random filling: ");
+    scanf("%d", &mode);
+    if (mode == 1) {
+        matrix2 = manualFilling(matrix2);
     } else {
-        printf("Matrix multiplication is impossible.\n");
+        printf("Select the maximum value for the matrix elements: ");
+        scanf("%d", &max_value);
+        matrix2 = randomFilling(matrix2, max_value);
     }
 
-    if (matrix1->height == matrix2->height && matrix1->width == matrix2->width) {
-        struct Matrix* additionResult = createMatrix(matrix1->height, matrix1->width);
-        matrixAddition(matrix1, matrix2, additionResult);
-        printf("Result of addition:\n");
-        printMatrix(additionResult);
-        deleteMatrix(additionResult);
+    multiplicationResult = multiplyMatrix(matrix1, matrix2);
+    printf("Result of multiplication:\n");
+    printMatrix(multiplicationResult);
+    deleteMatrix(multiplicationResult);
 
-        struct Matrix* subtractionResult = createMatrix(matrix1->height, matrix1->width);
-        matrixSubtraction(matrix1, matrix2, subtractionResult);
-        printf("Result of subtraction:\n");
-        printMatrix(subtractionResult);
-        deleteMatrix(subtractionResult);
-    } else {
-        printf("Addition and subtraction of matrices is impossible.\n");
-    }
+    additionResult = matrixAddition(matrix1, matrix2);
+    printf("Result of addition:\n");
+    printMatrix(additionResult);
+    deleteMatrix(additionResult);
+
+    subtractionResult = matrixSubtraction(matrix1, matrix2);
+    printf("Result of subtraction:\n");
+    printMatrix(subtractionResult);
+    deleteMatrix(subtractionResult);
 
     deleteMatrix(matrix1);
     deleteMatrix(matrix2);
